@@ -1,30 +1,42 @@
 package main
 
 import (
+	"context"
 	"embed"
 
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
 	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
+	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 //go:embed all:frontend/dist
 var assets embed.FS
 
 func main() {
-	// Create an instance of the app structure
 	app := NewApp()
 
-	// Create application with options
 	err := wails.Run(&options.App{
-		Title:  "clipboard-wails",
-		Width:  1024,
-		Height: 768,
+		Title:  "Clipboard Manager",
+		Width:  780,
+		Height: 560,
 		AssetServer: &assetserver.Options{
 			Assets: assets,
 		},
-		BackgroundColour: &options.RGBA{R: 27, G: 38, B: 54, A: 1},
+		BackgroundColour: &options.RGBA{R: 18, G: 18, B: 24, A: 1},
 		OnStartup:        app.startup,
+		OnBeforeClose: func(ctx context.Context) bool {
+			// Hide instead of quit unless the user chose Quit explicitly.
+			if app.shouldQuit {
+				return false
+			}
+			runtime.WindowHide(ctx)
+			return true
+		},
+		StartHidden:           true,
+		HideWindowOnClose:     false,
+		Frameless:             false,
+		EnableDefaultContextMenu: false,
 		Bind: []interface{}{
 			app,
 		},
